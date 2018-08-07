@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <div >
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css" /><br>
+    </div>
+  </head>
+  <body>
+   
+
+<div id="uiElements" style="margin-left: 10px;margin-right: 10px;"> </div> 
+<div id="uiMessages" style="margin-top: 15px; margin-bottom:15px; margin-left: 10px;margin-right: 10px;"></div> 
+<div id="newsOutputArea" style="margin-left: 10px;margin-right: 10px; " ></div> 
+
+
+<script> 
+
+
+var welcomeHTML = "<font size=3 color=#787878 > Welcome to Newsfinder. Select words to get news. </font>";
+document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get News")+"<br><br>"+welcomeHTML;
+
+
+function makeButtonHTML(atts, insert) {
+  var bStartHTML="<button type=\"button\" ";
+  var bEndHTML="\">"+insert+"</button>";
+  for (var item in atts)
+  {
+    bStartHTML=bStartHTML+" "+item+"="+"\" "+atts[item]+"\""; 
+}
+
+ return bStartHTML+bEndHTML;//html needed to make the button with the provided attrubute names and values
+
+}
+
+
+
+var colors = ["#A700B3", "#f65314", "#7cbb00", "#00a1f1", "#ffbb00","#ff0000", "#ff00ff" ];
+var spinnerHTML ="<img src='https://abirqasem.github.io/pics_for_apps/spinner_clean.gif' height='42' width='42'>";
+var hintsHTML = "<br><font size=3>"+ "Suggestions:" + "</font><br>"
++"<ul class=a><li>Try fewer words</li><li> Make sure all words are spelled correctly </li> <li>Try more newsworthy words</li></ul>";  
+var tooLonghintHTML= "<br><font size=3><br>"+ "Suggestion:" + "</font><br>"
++"<ul class=a><li>Try fewer words</li></ul>";   
+
+var noSelectionHTML = "<font size=3 color=#787878 > No selection made. Select words to get news. </font>";
+var noNewsFoundbHTML = "<font size=3 color=#787878 > Your search </font>";
+var noNewsFoundeHTML = "<font size=3 color=#787878> did not match any news item. </font>";
+var addHTML = "<img src=\"http://abir.x10.mx/images/add.png\">";
+var newsHeadbHTML = "<font size=3 color=#787878> News on </font>";
+
+function spinAndStart() {
+    document.getElementById("uiMessages").innerHTML="";
+    document.getElementById("newsOutputArea").innerHTML=spinnerHTML;
+    google.script.run.withSuccessHandler(showNews).main();
+}
+
+//
+//function spinAndStartTextBox() {
+//    
+//    document.getElementById("newsOutputArea").innerHTML=spinnerHTML;
+//    var searchTerm=document.getElementById("textBox").innerHTML
+//    console.log(searchTerm);
+//    google.script.run.withSuccessHandler(showNews).mainTextBox(searchTerm);
+//}
+
+function makeNewsHeaderHTML(extract) {
+  var charMax=90;
+  
+  var headerHTML = newsHeadbHTML;
+  if(extract.length<charMax)
+  {
+    headerHTML=headerHTML+"<font size=4 <b>"+extract+"</b></font>";
+  }
+  else
+  {
+     headerHTML=headerHTML+"<font size=4 <b>"+extract.substring(0,charMax)+"..</b></font>";
+  }
+  return headerHTML;
+
+}
+
+
+function makeImageHTML (data) {
+
+     return "<div>"+"<img width='200px' src="+data["image"]+"></a><div><font size=\"1\" color=grey>" + "</font></div> </div>";
+      
+      if (data["unescapedUrl"]!=data["image"]["originalContextUrl"])
+      {
+      
+        var imgHTML = "<div><a href="+data["image"]["originalContextUrl"]+">"+"<img src="+data["image"]["tbUrl"]+"></a><div><font size=\"1\" color=grey>"+ data["image"]["publisher"]  + "</font></div> </div>";
+      }
+      //var imgHTML = "<div><a href="+imageData["originalContextUrl"]+">"+"<img src="+imageData["tbUrl"]+"></a><div><font size=\"1\" color=grey>"+ imageData["publisher"]  + "</font></div> </div>";
+      
+      else
+      {
+      
+        var imgHTML = "<div>"+"<img src="+data["image"]["tbUrl"]+"></a><div><font size=\"1\" color=grey>" + "</font></div> </div>";
+      }
+      
+       var imgHTML = "<div>"+"<img src="+'https://humethnet.files.wordpress.com/2016/02/100px-biohazard_symbol_red-svg.png'+"></a><div><font size=\"1\" color=grey>" + "</font></div> </div>";
+     
+      
+      return imgHTML;
+
+}
+
+
+
+
+/* 
+
+We assume for this version that the allNews array contains only one element.
+
+
+*/
+
+
+
+
+
+function showNews(allNews) {
+/* assume all news is the array of the new data structure
+Title: A short string
+See Also: URL
+Parent: String
+Image: URL
+Source: URL
+Content: Big String
+
+*/
+   var term = allNews['term']
+   var allNews = allNews['results']
+   console.log(allNews)
+   if (allNews.length===0){
+    document.getElementById("newsOutputArea").innerHTML="";
+    document.getElementById("uiMessages").innerHTML="";
+    document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get News")+"</font>"+"<hr style=\"visibility:hidden;\" />";
+    document.getElementById("newsOutputArea").innerHTML=noSelectionHTML;
+   
+   
+   }
+   
+   else{
+
+  console.log(allNews)
+
+    document.getElementById("uiMessages").innerHTML=makeNewsHeaderHTML(term);
+    document.getElementById("uiElements").innerHTML="<font>"+makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get News")+"</font>"+"<hr style=\"visibility:hidden;\" />";
+
+    var contentMaxLen=220;
+  
+    var htmlString=""    
+    var clusterHTML;
+  
+    var news = allNews; 
+    for (var item in news) {
+        var link=convert(news[item]["source"]);
+        var title=(news[item]["title"]);
+        title=convert(title);/* field 1 */
+    
+        clusterHTML = news[item]["see_also"] !=null ? "<a href=\""+news[item]["see_also"]+ "\" > <font size=1><br>More  </font></a>":"" ;
+        var imageHTML =  news[item]["image"]!=null ? "<br>"+makeImageHTML( news[item]):"";//<br> temp fix to align button
+       
+            
+        htmlString=htmlString
+        +"<div id=news"+item+" style=\"background-color: #F2F2F2; margin-left: 12px;margin-right: 12px;margin-top: 10px;margin-bottom: 10px;  \">"
+        
+        +"<div id=news"+item+"a"+" style=\"margin-left: 10px;margin-right: 10px;margin-top: 12px;margin-bottom: 12px;  \">"
+        
+        +imageHTML  
+        +"<font size=\"2\"><a href=\""+(news[item]["source"])+"\">"+"<b>"+news[item]["title"]+"</b>"+"<br>"+"</a></font>"
+        +"<font size=\"1\" color=grey>"+ news[item]["parent"]  + "</font><br>"
+        +"<font size=\"2\" color=black>"
+        +news[item]["content"].substring(0,contentMaxLen)+".." +"</font>"
+        + clusterHTML
+        + "<div id=newsButton"+item+">"+makeButtonHTML({onclick:'google.script.run.insertLink(String.fromCharCode('+link+'),String.fromCharCode('+title+'))'},"Insert Link")+"</div>"
+       +"<br>" //temp fix to align button
+        +"</div>"
+        +"</div>"
+        
+       
+     }
+     
+     
+      
+       htmlString=htmlString+"<div><span class=\"gray\">Add-on by: <a href=\"http://learnin60seconds.com\">Learnin60seconds.com</a> <br></span>  </div>";
+         
+       document.getElementById("newsOutputArea").innerHTML=htmlString;
+       
+    }
+   
+  }
+
+
+function convert(str)
+{
+  var code="";
+//  console.log(str);
+  for (var i=0;i<str.length;i++)
+  {
+    
+    var f=str.charCodeAt(i);
+    code=code+f+",";
+    
+   }
+   code=code.substring(0, code.length-1)
+   //console.log(code);
+   return code;
+}
+
+
+
+
+
+// Helpers
+
+
+
+
+function iFailed(e) {
+  document.getElementById("newsOutputArea").innerHTML="Opps";
+
+}
+
+function debug (news) {
+ document.getElementById("uiElements").innerHTML=news[0]["topic"];
+
+
+
+
+}
+
+function colorify (someString) {
+var colorifiedHTML="";
+  
+  for (var i=0; i<someString.length; i++) {
+    if (someString[i]!=" ") {
+      var hexColor = colors[i%colors.length];
+      colorifiedHTML = colorifiedHTML+ "<font color=" + hexColor+ ">"+ someString[i]+"</font>";
+    }
+    else {
+    
+      colorifiedHTML = colorifiedHTML + " ";
+    }
+
+  
+  
+  }
+
+  return colorifiedHTML;
+
+
+}
+
+
+     
+
+  
+
+</script>
+  </body>
+</html>
+
+
