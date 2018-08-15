@@ -17,8 +17,15 @@
 <script> 
 
 
-var welcomeHTML = "<font size=3 color=#787878 > Welcome to Newsfinder. Select words to get news. </font>";
-document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get News")+"<br><br>"+welcomeHTML;
+
+
+google.script.run.withSuccessHandler(function(topic){
+     var welcomeHTML = "<font size=3 color=#787878 >Select words to get started. </font>";
+     document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get "+topic)+"<br><br>"+welcomeHTML;}).get_topic()
+
+
+
+
 
 
 function makeButtonHTML(atts, insert) {
@@ -35,18 +42,14 @@ function makeButtonHTML(atts, insert) {
 
 
 
-var colors = ["#A700B3", "#f65314", "#7cbb00", "#00a1f1", "#ffbb00","#ff0000", "#ff00ff" ];
-var spinnerHTML ="<img src='https://abirqasem.github.io/pics_for_apps/spinner_clean.gif' height='42' width='42'>";
-var hintsHTML = "<br><font size=3>"+ "Suggestions:" + "</font><br>"
-+"<ul class=a><li>Try fewer words</li><li> Make sure all words are spelled correctly </li> <li>Try more newsworthy words</li></ul>";  
-var tooLonghintHTML= "<br><font size=3><br>"+ "Suggestion:" + "</font><br>"
-+"<ul class=a><li>Try fewer words</li></ul>";   
+     
 
-var noSelectionHTML = "<font size=3 color=#787878 > No selection made. Select words to get news. </font>";
-var noNewsFoundbHTML = "<font size=3 color=#787878 > Your search </font>";
-var noNewsFoundeHTML = "<font size=3 color=#787878> did not match any news item. </font>";
-var addHTML = "<img src=\"http://abir.x10.mx/images/add.png\">";
-var newsHeadbHTML = "<font size=3 color=#787878> News on </font>";
+var spinnerHTML ="<img src='https://abirqasem.github.io/pics_for_apps/spinner_clean.gif' height='42' width='42'>";
+
+
+var noSelectionHTML = "<font size=3 color=#787878 > No selection made. Select words to get results. </font>";
+var noResultsHTML = "<font size=3 color=#787878 > No results found. Try a less specific search";
+var newsHeadHTML = "<font size=3 color=#787878> Results on </font>";
 
 function spinAndStart() {
     document.getElementById("uiMessages").innerHTML="";
@@ -54,19 +57,12 @@ function spinAndStart() {
     google.script.run.withSuccessHandler(showNews).main();
 }
 
-//
-//function spinAndStartTextBox() {
-//    
-//    document.getElementById("newsOutputArea").innerHTML=spinnerHTML;
-//    var searchTerm=document.getElementById("textBox").innerHTML
-//    console.log(searchTerm);
-//    google.script.run.withSuccessHandler(showNews).mainTextBox(searchTerm);
-//}
+
 
 function makeNewsHeaderHTML(extract) {
   var charMax=90;
   
-  var headerHTML = newsHeadbHTML;
+  var headerHTML = newsHeadHTML;
   if(extract.length<charMax)
   {
     headerHTML=headerHTML+"<font size=4 <b>"+extract+"</b></font>";
@@ -83,69 +79,34 @@ function makeNewsHeaderHTML(extract) {
 function makeImageHTML (data) {
 
      return "<div>"+"<img width='200px' src="+data["image"]+"></a><div><font size=\"1\" color=grey>" + "</font></div> </div>";
-      
-      if (data["unescapedUrl"]!=data["image"]["originalContextUrl"])
-      {
-      
-        var imgHTML = "<div><a href="+data["image"]["originalContextUrl"]+">"+"<img src="+data["image"]["tbUrl"]+"></a><div><font size=\"1\" color=grey>"+ data["image"]["publisher"]  + "</font></div> </div>";
-      }
-      //var imgHTML = "<div><a href="+imageData["originalContextUrl"]+">"+"<img src="+imageData["tbUrl"]+"></a><div><font size=\"1\" color=grey>"+ imageData["publisher"]  + "</font></div> </div>";
-      
-      else
-      {
-      
-        var imgHTML = "<div>"+"<img src="+data["image"]["tbUrl"]+"></a><div><font size=\"1\" color=grey>" + "</font></div> </div>";
-      }
-      
-       var imgHTML = "<div>"+"<img src="+'https://humethnet.files.wordpress.com/2016/02/100px-biohazard_symbol_red-svg.png'+"></a><div><font size=\"1\" color=grey>" + "</font></div> </div>";
-     
-      
-      return imgHTML;
 
 }
 
 
-
-
-/* 
-
-We assume for this version that the allNews array contains only one element.
-
-
-*/
-
-
-
-
-
 function showNews(allNews) {
-/* assume all news is the array of the new data structure
-Title: A short string
-See Also: URL
-Parent: String
-Image: URL
-Source: URL
-Content: Big String
-
-*/
+/* assume all news is the array of the new data structure Title: A short string See Also: URL Parent: String  Image: URL Source: URL  Content: Big String */
+   var topic_name = allNews['application_name']
    var term = allNews['term']
    var allNews = allNews['results']
    console.log(allNews)
    if (allNews.length===0){
     document.getElementById("newsOutputArea").innerHTML="";
     document.getElementById("uiMessages").innerHTML="";
-    document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get News")+"</font>"+"<hr style=\"visibility:hidden;\" />";
-    document.getElementById("newsOutputArea").innerHTML=noSelectionHTML;
-   
+    document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get "+topic_name)+"</font>"+"<hr style=\"visibility:hidden;\" />";
+    document.getElementById("newsOutputArea").innerHTML=noSelectionHTML;  
+   }
+   else if (allNews===false){
+       document.getElementById("newsOutputArea").innerHTML="";
+    document.getElementById("uiMessages").innerHTML="";
+    document.getElementById("uiElements").innerHTML=makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get "+topic_name)+"</font>"+"<hr style=\"visibility:hidden;\" />";
+    document.getElementById("newsOutputArea").innerHTML=noResultsHTML;  
    
    }
    
    else{
 
-  console.log(allNews)
-
     document.getElementById("uiMessages").innerHTML=makeNewsHeaderHTML(term);
-    document.getElementById("uiElements").innerHTML="<font>"+makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get News")+"</font>"+"<hr style=\"visibility:hidden;\" />";
+    document.getElementById("uiElements").innerHTML="<font>"+makeButtonHTML({class:"action",onclick:'spinAndStart()'},"Get "+topic_name)+"</font>"+"<hr style=\"visibility:hidden;\" />";
 
     var contentMaxLen=220;
   
@@ -176,14 +137,10 @@ Content: Big String
         + "<div id=newsButton"+item+">"+makeButtonHTML({onclick:'google.script.run.insertLink(String.fromCharCode('+link+'),String.fromCharCode('+title+'))'},"Insert Link")+"</div>"
        +"<br>" //temp fix to align button
         +"</div>"
-        +"</div>"
-        
-       
+        +"</div>"   
      }
-     
-     
-      
-       htmlString=htmlString+"<div><span class=\"gray\">Add-on by: <a href=\"http://learnin60seconds.com\">Learnin60seconds.com</a> <br></span>  </div>";
+           
+       htmlString=htmlString+"<div><span class=\"gray\">Add-on by: <a href=\"http://learnin60seconds.com\">Learnin60seconds.com</a><br> and powered by <a href='https://www.contextualwebsearch.com/'>contextualwebsearch.com<br></span>  </div>";
          
        document.getElementById("newsOutputArea").innerHTML=htmlString;
        
@@ -195,7 +152,6 @@ Content: Big String
 function convert(str)
 {
   var code="";
-//  console.log(str);
   for (var i=0;i<str.length;i++)
   {
     
@@ -204,56 +160,9 @@ function convert(str)
     
    }
    code=code.substring(0, code.length-1)
-   //console.log(code);
    return code;
 }
 
-
-
-
-
-// Helpers
-
-
-
-
-function iFailed(e) {
-  document.getElementById("newsOutputArea").innerHTML="Opps";
-
-}
-
-function debug (news) {
- document.getElementById("uiElements").innerHTML=news[0]["topic"];
-
-
-
-
-}
-
-function colorify (someString) {
-var colorifiedHTML="";
-  
-  for (var i=0; i<someString.length; i++) {
-    if (someString[i]!=" ") {
-      var hexColor = colors[i%colors.length];
-      colorifiedHTML = colorifiedHTML+ "<font color=" + hexColor+ ">"+ someString[i]+"</font>";
-    }
-    else {
-    
-      colorifiedHTML = colorifiedHTML + " ";
-    }
-
-  
-  
-  }
-
-  return colorifiedHTML;
-
-
-}
-
-
-     
 
   
 
